@@ -67,20 +67,19 @@ func genPseudoAleatorios() []int {
 func genPseudoAleatorios_Aux(n int, x int) []int {
 
 	var arrayInts []int
-	m := 2048 //Modulo (Periodo)
-	a := 53   //Multiplicador
-	b := 541  //Incremento
+	m := 2048 //Modulo (Periodo) 2048
+	a := 53   //Multiplicador 53
+	b := 541  //Incremento 541
 
 	tmp := x
 
-	OldRange := (m - 0)
-	NewRange := (199 - 0)
+	NewRange := 199
 
 	for i := 1; i <= n; i++ {
 
 		numAleatorio := (a*tmp + b) % m
 		//Convierte el numero en el rango
-		newN := (((numAleatorio - 0) * NewRange) / OldRange) + 0
+		newN := (numAleatorio % NewRange)
 		arrayInts = append(arrayInts, newN)
 		tmp = newN
 

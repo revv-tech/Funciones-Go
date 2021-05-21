@@ -48,7 +48,6 @@ func (avl *AVL) insertNodeAVL(node *NodeAVL, key int) {
 }
 
 //Balancear el AVL
-
 func (avl *AVL) balancear() *NodeAVL {
 	return nil
 }
