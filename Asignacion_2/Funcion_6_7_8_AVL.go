@@ -1,90 +1,159 @@
 package main
 
-//Funcion #2
-//Nodo del arbol
+import (
+	"fmt"
+)
+
+func main() {
+
+	var avl *NodeAVL
+	avl := &NodeAVL{}
+
+	avl = insertAVL(avl, 10)
+	avl = insertAVL(avl, 20)
+	avl = insertAVL(avl, 30)
+	avl = insertAVL(avl, 40)
+	avl = insertAVL(avl, 50)
+	avl = insertAVL(avl, 25)
+	preOrder(root)
+}
 
 type NodeAVL struct {
-	//Attributes
-	key   int
-	left  *NodeAVL
-	right *NodeAVL
+	key    int
+	height int
+	left   *NodeAVL
+	right  *NodeAVL
 }
 
-//Representacion de Binary Search Tree
-type AVL struct {
-	//Attributes
-	root *NodeAVL
-}
+// Metodo que devuelve el valor de la altura de un nodo
+func (nodeAVL *NodeAVL) getHeight(node *NodeAVL) int {
 
-//Funcion #7: Busqueda en AVL
-func (avl *AVL) searchAVL(key int) {
+	if node == nil {
 
-}
-
-//Funcion #8: Insercion en AVL
-func (avl *AVL) insertNodeAVL(node *NodeAVL, key int) {
-	//Crea nuevo node
-	newNode := &NodeAVL{key, nil, nil}
-	//Verifica si es nulo
-	if avl.root == nil {
-		//Iguala el nodo
-		avl.root = newNode
+		return 0
 	} else {
-		//Verifica si el key del node es el mismo
-		if key == node.key {
 
-		}
-		//Verifica si el hijo izq. es mayor
-		if key < node.key {
-			avl.insertNodeAVL(node.left, key)
-		}
-		//Verifica si el hijo der. es mayor
-		if key > node.key {
-			avl.insertNodeAVL(node.right, key)
-		}
-
+		return node.height
 	}
-	return
 }
 
-//Balancear el AVL
-func (avl *AVL) balancear() *NodeAVL {
-	return nil
+// Metodo que crea una nueva instancia de NodeAVL
+func (node *NodeAVL) newNode(key int) *NodeAVL {
+
+	var newNode *NodeAVL
+	newNode := new(Node)
+	newNode.key = key
+	newNode.left = nil
+	newNode.right = nil
+	newNode.height = 1
+
+	return newNode
 }
 
-//Diferencia de alturas
-func (avl *AVL) difAlturas() int {
-	return 0
-}
+// Metodo que realiza una rotacion hacia la derecha del nodo proporcionado
+func (node *NodeAVL) rotateRight(y *NodeAVL) *NodeAVL {
 
-//Rotaciones del arbol
-func (avl *AVL) rr_Rotacion(node *NodeAVL) *NodeAVL {
-	//Crea un temporal
-	tmp := node.right
-	node.right = tmp.left
-	tmp.left = node
-	return tmp
+	var x *NodeAVL
+	x := y.left
+	var T2 *NodeAVL
+	T2 := x.right
 
-}
-func (avl *AVL) ll_Rotacion(node *NodeAVL) *NodeAVL {
-	tmp := node.left
-	node.right = tmp.right
-	tmp.right = node
-	return tmp
+	x.right = y
+	y.left = T2
+
+	y.height = max(NodeAVL.getHeight(y.left), getHeight(y.right)) + 1
+	x.height = max(getHeight(x.left), getHeight(x.right)) + 1
+
+	return x
 
 }
-func (avl *AVL) lr_Rotacion(node *NodeAVL) *NodeAVL {
 
-	tmp := node.right
-	node.right = avl.rr_Rotacion(tmp)
+// Metodo que realiza una rotacion hacia la izquierda del nodo proporcionado
+func (node *NodeAVL) rotateLeft(y *NodeAVL) *NodeAVL {
 
-	return avl.ll_Rotacion(node)
+	var y *NodeAVL
+	y := x.right
+	var T2 *NodeAVL
+	T2 := y.left
 
+	y.left = x
+	x.right = T2
+
+	x.height = max(getHeight(x.left), getHeight(x.right)) + 1
+	y.height = max(getHeight(y.left), getHeight(y.right)) + 1
+
+	return y
 }
-func (avl *AVL) rl_Rotacion(node *NodeAVL) *NodeAVL {
 
-	tmp := node.right
-	node.right = avl.ll_Rotacion(tmp)
-	return avl.rr_Rotacion(node)
+// Metodo que calcula el balance del arbol
+func (nodeAVL *NodeAVL) getBalance(node *NodeAVL) int {
 
+	if node == nil {
+		return 0
+	} else {
+		return getHeight(node.left) - getHeight(node.right)
+	}
+}
+
+//
+func (nodeAVL *NodeAVL) insertAVL(node *NodeAVL, key int) *NodeAVL {
+
+	// Se realiza una insercion comun de BST
+	if node == nil {
+		return newNode(key)
+	}
+
+	if key < node.key {
+		node.left = insertAVL(node.left, key)
+	} else if key > node.key {
+		node.right = insertAVL(node.right, key)
+	} else {
+		return node
+	}
+
+	//Se actualiza la altura del nodo acenstro
+	node.height = 1 + max(getHeight(node.left), getHeight(node.right))
+
+	//Se obtiene el factor de balance de este nodo ancestro para sabre si aun mantiene el balance
+	balance := getBalance(node)
+
+	//En caso de estar desbalanceado se tienen 4 posibles casos
+
+	//#1 Caso Izq Izq
+	if balance > 1 && key < node.left.key {
+
+		return NodeAVL.rotateRight(node)
+	} else if balance < -1 && key > node.right.key { //#2 Caso Der Der
+
+		return leftRotate(node)
+	} else if balance > 1 && key > node.left.key { //#3 Caso Izq Der
+
+		node.left = leftRotate(node)
+		return rightRotate(node)
+	} else if balance < -1 && key < node.right.key { //#4 Caso Der Izq
+
+		node.right = NodeAVL.rightRotate(node.right)
+		return leftRotate(node)
+	}
+
+	//Retornando el node sin ningun tipo de cambio
+	return node
+}
+
+func (node *NodeAVL) preOrder(root *NodeAVL) {
+
+	if root == nil {
+
+		fmt.Println(root.key)
+		preOrder(root.left)
+		preOrder(root.right)
+	}
+}
+
+func max(num1, num2 int) int {
+
+	if num1 > num2 {
+		return num2
+	}
+	return node2
 }
