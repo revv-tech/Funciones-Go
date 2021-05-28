@@ -6,27 +6,56 @@ import (
 
 func main() {
 
-	var avl *NodeAVL
-	avl := &NodeAVL{}
+	avl := &TreeAVL{}
 
-	avl = insertAVL(avl, 10)
-	avl = insertAVL(avl, 20)
-	avl = insertAVL(avl, 30)
-	avl = insertAVL(avl, 40)
-	avl = insertAVL(avl, 50)
-	avl = insertAVL(avl, 25)
-	preOrder(root)
+
+	avl.insertAVL(10)
+	avl.insertAVL(20)
+	avl.insertAVL(30)
+	avl.insertAVL(30)
+	avl.insertAVL(30)
+	avl.insertAVL(20)
+	printAVL(avl.root)
+	//preOrder(avl)
+	fmt.Println(searchAVL(avl.root, 50))
 }
 
 type NodeAVL struct {
-	key    int
-	height int
+	key    	int
+	height 	int
+	quant 	int
 	left   *NodeAVL
 	right  *NodeAVL
 }
 
+
+type TreeAVL struct {
+
+	root *NodeAVL
+}
+
+/*Imprimir AVL*/
+func printAVL(root *NodeAVL) {
+	fmt.Println("------------------------------------------------")
+	printAVLAux(root, 0)
+	fmt.Println("------------------------------------------------")
+}
+func printAVLAux(n *NodeAVL, level int) {
+	if n != nil {
+		format := ""
+		for i := 0; i < level; i++ {
+			format += "       "
+		}
+		format += "---[ "
+		level++
+		printAVLAux(n.right, level)
+		fmt.Printf(format+"%d\n", n.quant)
+		printAVLAux(n.left, level)
+	}
+}
+
 // Metodo que devuelve el valor de la altura de un nodo
-func (nodeAVL *NodeAVL) getHeight(node *NodeAVL) int {
+func getHeight(node *NodeAVL) int {
 
 	if node == nil {
 
@@ -38,30 +67,23 @@ func (nodeAVL *NodeAVL) getHeight(node *NodeAVL) int {
 }
 
 // Metodo que crea una nueva instancia de NodeAVL
-func (node *NodeAVL) newNode(key int) *NodeAVL {
+func newNode(key int) *NodeAVL {
 
 	var newNode *NodeAVL
-	newNode := new(Node)
-	newNode.key = key
-	newNode.left = nil
-	newNode.right = nil
-	newNode.height = 1
-
+	newNode = &NodeAVL{key: key, left: nil, right: nil, height: 1, quant: 1}
 	return newNode
 }
 
 // Metodo que realiza una rotacion hacia la derecha del nodo proporcionado
-func (node *NodeAVL) rotateRight(y *NodeAVL) *NodeAVL {
+func rotateRight(y *NodeAVL) *NodeAVL {
 
-	var x *NodeAVL
 	x := y.left
-	var T2 *NodeAVL
 	T2 := x.right
 
 	x.right = y
 	y.left = T2
 
-	y.height = max(NodeAVL.getHeight(y.left), getHeight(y.right)) + 1
+	y.height = max(getHeight(y.left), getHeight(y.right)) + 1
 	x.height = max(getHeight(x.left), getHeight(x.right)) + 1
 
 	return x
@@ -69,11 +91,9 @@ func (node *NodeAVL) rotateRight(y *NodeAVL) *NodeAVL {
 }
 
 // Metodo que realiza una rotacion hacia la izquierda del nodo proporcionado
-func (node *NodeAVL) rotateLeft(y *NodeAVL) *NodeAVL {
+func rotateLeft(x *NodeAVL) *NodeAVL{
 
-	var y *NodeAVL
 	y := x.right
-	var T2 *NodeAVL
 	T2 := y.left
 
 	y.left = x
@@ -86,7 +106,7 @@ func (node *NodeAVL) rotateLeft(y *NodeAVL) *NodeAVL {
 }
 
 // Metodo que calcula el balance del arbol
-func (nodeAVL *NodeAVL) getBalance(node *NodeAVL) int {
+func getBalance(node *NodeAVL) int {
 
 	if node == nil {
 		return 0
@@ -95,20 +115,36 @@ func (nodeAVL *NodeAVL) getBalance(node *NodeAVL) int {
 	}
 }
 
-//
-func (nodeAVL *NodeAVL) insertAVL(node *NodeAVL, key int) *NodeAVL {
+func (avl *TreeAVL) insertAVL (key int) int{
+
+	var node *NodeAVL
+	var recursions int
+	if avl.root == nil{
+		node = newNode(key)
+		avl.root = node
+		return 1
+	}else{
+		node, recursions = insertAVL_Aux(avl.root, key, 0)
+		avl.root = node
+		return recursions
+	}
+
+}
+
+func insertAVL_Aux(node *NodeAVL, key int, recursions int) (*NodeAVL, int) {
 
 	// Se realiza una insercion comun de BST
 	if node == nil {
-		return newNode(key)
+		return newNode(key), recursions
 	}
 
 	if key < node.key {
-		node.left = insertAVL(node.left, key)
+		node.left, _ = insertAVL_Aux(node.left, key, recursions+1)
 	} else if key > node.key {
-		node.right = insertAVL(node.right, key)
+		node.right, _ = insertAVL_Aux(node.right, key, recursions+1)
 	} else {
-		return node
+		node.quant = node.quant + 1
+		return node, recursions
 	}
 
 	//Se actualiza la altura del nodo acenstro
@@ -122,27 +158,61 @@ func (nodeAVL *NodeAVL) insertAVL(node *NodeAVL, key int) *NodeAVL {
 	//#1 Caso Izq Izq
 	if balance > 1 && key < node.left.key {
 
-		return NodeAVL.rotateRight(node)
-	} else if balance < -1 && key > node.right.key { //#2 Caso Der Der
+		return rotateRight(node), 0
 
-		return leftRotate(node)
-	} else if balance > 1 && key > node.left.key { //#3 Caso Izq Der
+	}
+	if balance < -1 && key > node.right.key { //#2 Caso Der Der
 
-		node.left = leftRotate(node)
-		return rightRotate(node)
-	} else if balance < -1 && key < node.right.key { //#4 Caso Der Izq
+		return rotateLeft(node), 0
 
-		node.right = NodeAVL.rightRotate(node.right)
-		return leftRotate(node)
+	}
+	if balance > 1 && key > node.left.key { //#3 Caso Izq Der
+
+		node.left = rotateLeft(node.left)
+		return rotateRight(node), 0
+
+	}
+	if balance < -1 && key < node.right.key { //#4 Caso Der Izq
+
+		node.right = rotateRight(node.right)
+		return rotateLeft(node), 0
 	}
 
 	//Retornando el node sin ningun tipo de cambio
-	return node
+	return node, recursions
 }
 
-func (node *NodeAVL) preOrder(root *NodeAVL) {
-
+//Funcion #3: Funcion de Buscar
+func searchAVL(root *NodeAVL, key int) (int, bool) {
 	if root == nil {
+		return 1, false
+	} else {
+		return searchAVL_Aux(root, key, 1)
+	}
+}
+
+//Auxiliar que realiza las comparaciones
+func searchAVL_Aux(node *NodeAVL, key int, recursions int) (int, bool) {
+
+	//Verifica si el nodo es nulo
+	if node == nil {
+		return recursions, false
+	}
+	// Verifica si la key es mayor que el la del nodo, si es menor se llama asi mismo con el nodo izquierdo y suma 1 a la cantidad de comparaciones
+	if key < node.key {
+		return searchAVL_Aux(node.left, key, recursions+1)
+	}
+	// Verifica si la key es menor que el la del nodo, si es mayor se llama asi mismo con el nodo derecho y suma 1 a la cantidad de comparaciones
+	if key > node.key {
+		return searchAVL_Aux(node.right, key, recursions+1)
+	}
+	return recursions, true
+
+}
+
+func preOrder(root *NodeAVL) {
+
+	if root != nil {
 
 		fmt.Println(root.key)
 		preOrder(root.left)
@@ -153,7 +223,7 @@ func (node *NodeAVL) preOrder(root *NodeAVL) {
 func max(num1, num2 int) int {
 
 	if num1 > num2 {
-		return num2
+		return num1
 	}
-	return node2
+	return num2
 }
