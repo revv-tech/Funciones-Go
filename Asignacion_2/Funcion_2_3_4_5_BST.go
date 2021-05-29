@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+/*
 func main() {
 	bst := &BST{}
 	bst.insertNode(20)
@@ -21,7 +22,7 @@ func main() {
 	bst.printBST()
 
 }
-
+*/
 //Funcion #2
 //Nodo del arbol
 type Node struct {
@@ -116,8 +117,6 @@ func insertNodeAux(node, newNode *Node, recursions int) int {
 		}
 
 	}
-
-	return recursions
 
 }
 

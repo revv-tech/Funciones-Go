@@ -8,11 +8,12 @@ import (
 	"strconv"
 )
 
+/*
 func main() {
 	genPseudoAleatorios()
 
 }
-
+*/
 //Auxiliar que verifica si es primo
 func esPrimo(n int) bool {
 

@@ -4,33 +4,38 @@ import (
 	"fmt"
 )
 
+var globalRecursions = 0
+
 func main() {
 
 	avl := &TreeAVL{}
 
-
-	avl.insertAVL(10)
-	avl.insertAVL(20)
-	avl.insertAVL(30)
-	avl.insertAVL(30)
-	avl.insertAVL(30)
-	avl.insertAVL(20)
+	a := avl.insertAVL(10)
+	//a := globalRecursions
+	b := avl.insertAVL(20)
+	//b := globalRecursions
+	c := avl.insertAVL(30)
+	//c := globalRecursions
+	d := avl.insertAVL(40)
+	//d := globalRecursions
 	printAVL(avl.root)
 	//preOrder(avl)
-	fmt.Println(searchAVL(avl.root, 50))
+	//fmt.Println(searchAVL(avl.root, 50))
+	fmt.Println(a)
+	fmt.Println(b)
+	fmt.Println(c)
+	fmt.Println(d)
 }
 
 type NodeAVL struct {
-	key    	int
-	height 	int
-	quant 	int
+	key    int
+	height int
+	quant  int
 	left   *NodeAVL
 	right  *NodeAVL
 }
 
-
 type TreeAVL struct {
-
 	root *NodeAVL
 }
 
@@ -49,7 +54,7 @@ func printAVLAux(n *NodeAVL, level int) {
 		format += "---[ "
 		level++
 		printAVLAux(n.right, level)
-		fmt.Printf(format+"%d\n", n.quant)
+		fmt.Printf(format+"%d\n", n.key)
 		printAVLAux(n.left, level)
 	}
 }
@@ -91,7 +96,7 @@ func rotateRight(y *NodeAVL) *NodeAVL {
 }
 
 // Metodo que realiza una rotacion hacia la izquierda del nodo proporcionado
-func rotateLeft(x *NodeAVL) *NodeAVL{
+func rotateLeft(x *NodeAVL) *NodeAVL {
 
 	y := x.right
 	T2 := y.left
@@ -115,18 +120,16 @@ func getBalance(node *NodeAVL) int {
 	}
 }
 
-func (avl *TreeAVL) insertAVL (key int) int{
+func (avl *TreeAVL) insertAVL(key int) int {
 
-	var node *NodeAVL
-	var recursions int
-	if avl.root == nil{
-		node = newNode(key)
+	if avl.root == nil {
+		avl.root = newNode(key)
+		globalRecursions = 1
+		return globalRecursions
+	} else {
+		node, _ := insertAVL_Aux(avl.root, key, 0)
 		avl.root = node
-		return 1
-	}else{
-		node, recursions = insertAVL_Aux(avl.root, key, 0)
-		avl.root = node
-		return recursions
+		return globalRecursions
 	}
 
 }
@@ -135,6 +138,8 @@ func insertAVL_Aux(node *NodeAVL, key int, recursions int) (*NodeAVL, int) {
 
 	// Se realiza una insercion comun de BST
 	if node == nil {
+		recursions++
+		globalRecursions = recursions
 		return newNode(key), recursions
 	}
 
@@ -144,6 +149,8 @@ func insertAVL_Aux(node *NodeAVL, key int, recursions int) (*NodeAVL, int) {
 		node.right, _ = insertAVL_Aux(node.right, key, recursions+1)
 	} else {
 		node.quant = node.quant + 1
+		recursions++
+		globalRecursions = recursions
 		return node, recursions
 	}
 
