@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 )
+
+
 //Nodo del arbol
 type Node struct {
 	//Attributes
@@ -111,8 +113,6 @@ func (bst *BST) insertNodeAux(node, newNode *Node, recursions int) int {
 		}
 
 	}
-
-	return recursions
 
 }
 
