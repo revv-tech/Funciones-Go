@@ -4,25 +4,6 @@ import (
 	"fmt"
 	"math"
 )
-
-func main() {
-	bst := &BST{}
-	bst.insertNode(20)
-	bst.insertNode(15)
-	bst.insertNode(17)
-	bst.insertNode(19)
-	bst.insertNode(30)
-	bst.insertNode(25)
-	bst.insertNode(40)
-	bst.insertNode(32)
-	bst.insertNode(50)
-	bst.printBST()
-	bst.dsw()
-	bst.printBST()
-
-}
-
-//Funcion #2
 //Nodo del arbol
 type Node struct {
 	//Attributes
@@ -35,7 +16,11 @@ type Node struct {
 //Representacion de Binary Search Tree
 type BST struct {
 	//Attributes
-	root *Node
+	root                  *Node
+	totalInser            int
+	DensidadDelArbol      int
+	CantidadComparaciones int
+	totalBusqueda         int
 }
 
 //Funcion #3: Funcion de Buscar
@@ -43,7 +28,10 @@ func (bst *BST) search(key int) (int, bool) {
 	if bst.root == nil {
 		return 1, false
 	} else {
-		return search_Aux(bst.root, key, 0)
+		recursions, result := search_Aux(bst.root, key, 1)
+		bst.totalBusqueda = bst.totalBusqueda + recursions
+
+		return recursions, result
 	}
 }
 
@@ -62,6 +50,7 @@ func search_Aux(node *Node, key int, recursions int) (int, bool) {
 	if key > node.key {
 		return search_Aux(node.right, key, recursions+1)
 	}
+
 	return recursions, true
 
 }
@@ -74,7 +63,11 @@ func (bst *BST) insertNode(key int) int {
 		bst.root = newNode
 		return 1
 	} else {
-		return insertNodeAux(bst.root, newNode, 0)
+		recursions := bst.insertNodeAux(bst.root, newNode, 1)
+
+		bst.totalInser = bst.totalInser + 1
+		bst.CantidadComparaciones = bst.CantidadComparaciones + recursions
+		return recursions
 
 	}
 }
@@ -83,10 +76,11 @@ func (bst *BST) insertNode(key int) int {
 /*
 E: dos nodos (uno es la raiz, y el otro el nodo a insertar)
 */
-func insertNodeAux(node, newNode *Node, recursions int) int {
+func (bst *BST) insertNodeAux(node, newNode *Node, recursions int) int {
 
 	if newNode.key == node.key {
 		node.quant = node.quant + 1
+		bst.totalInser = bst.totalInser - 1
 		return recursions
 	}
 
@@ -99,7 +93,7 @@ func insertNodeAux(node, newNode *Node, recursions int) int {
 
 		} else {
 
-			return insertNodeAux(node.left, newNode, recursions+1)
+			return bst.insertNodeAux(node.left, newNode, recursions+1)
 
 		}
 
@@ -108,11 +102,12 @@ func insertNodeAux(node, newNode *Node, recursions int) int {
 		if node.right == nil {
 			recursions++
 			node.right = newNode
+
 			return recursions
 
 		} else {
 
-			return insertNodeAux(node.right, newNode, recursions+1)
+			return bst.insertNodeAux(node.right, newNode, recursions+1)
 		}
 
 	}
@@ -123,8 +118,11 @@ func insertNodeAux(node, newNode *Node, recursions int) int {
 
 /*Imprimir BST*/
 func (bst *BST) printBST() {
-	fmt.Println("------------------------------------------------")
+	fmt.Println("---------------------KEY---------------------------")
 	printBSTAux(bst.root, 0)
+	fmt.Println("------------------------------------------------")
+	fmt.Println("----------------------QUANT--------------------------")
+	printBSTAuxQuant(bst.root, 0)
 	fmt.Println("------------------------------------------------")
 }
 func printBSTAux(n *Node, level int) {
@@ -138,6 +136,19 @@ func printBSTAux(n *Node, level int) {
 		printBSTAux(n.right, level)
 		fmt.Printf(format+"%d\n", n.key)
 		printBSTAux(n.left, level)
+	}
+}
+func printBSTAuxQuant(n *Node, level int) {
+	if n != nil {
+		format := ""
+		for i := 0; i < level; i++ {
+			format += "       "
+		}
+		format += "---[ "
+		level++
+		printBSTAuxQuant(n.right, level)
+		fmt.Printf(format+"%d\n", n.quant)
+		printBSTAuxQuant(n.left, level)
 	}
 }
 
@@ -169,18 +180,18 @@ func (bst *BST) createVine() {
 }
 
 //Funcion #5: DSW
-func (bst *BST) createBalancedBST() {
 
+func (bst *BST) createBalancedBST() {
+	//Se realizan utilizan las variables necesitadas m y n
 	n := bst.numOfNodes()
-	h := int(math.Log2(float64(n + 1)))
-	x := h - 1
-	m := n - x
-	fmt.Println(n, m, x)
+	h := math.Log2(float64(n + 1))
+	x := int(math.Pow(2, h)) - 1
 
 	var rounder *Node
 	tmp := bst.root
 	right := tmp.right
 
+	//Se realizan las primeras rotaciones (n - m)
 	for x > 0 {
 
 		if right != nil {
@@ -197,19 +208,21 @@ func (bst *BST) createBalancedBST() {
 
 	}
 
-	for m > 1 {
+	//Se realizan las ultimas rotaciones (m = m /2 )
+	for x > 1 {
+
 		var rounder2 *Node
 		newTmp := bst.root
 		newRight := newTmp.right
 
-		bst.printBST()
-		m = m / 2
-
+		//bst.printBST()
+		x = x / 2
 		if newRight != nil {
 
-			for i := 0; i < m; i++ {
+			for i := 0; i < x; i++ {
 
 				bst.rotateLeftDSW(rounder2, newTmp, newRight)
+
 				rounder2 = newRight
 				newTmp = rounder2.right
 				newRight = newTmp.right
@@ -242,9 +255,12 @@ func (bst *BST) rotateLeftDSW(rounder, parent, right *Node) {
 	if rounder != nil {
 		rounder.right = right
 	} else {
+
 		bst.root = right
 	}
+
 	parent.right = right.left
+
 	right.left = parent
 
 }
